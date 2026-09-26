@@ -4737,7 +4737,10 @@ CREATE INDEX IF NOT EXISTS idx_documents_desc_trgm
 -- Seed transaction data for Jan-May 2026 reconciliation
 -- Input = project_payments with status 'posted' or 'partial'
 -- Output = expenses with status 'approved'
+-- COMMENTED OUT: This seed data uses hardcoded UUIDs that don't exist in fresh database
+-- Uncomment and replace UUIDs with your actual IDs if you want this test data
 
+/*
 DO $$
 DECLARE
   v_project_1 uuid := '1375bd93-454d-423f-9470-91d2a396f34b';
@@ -4821,6 +4824,7 @@ BEGIN
     (v_cat_travel, v_project_2, 100000.00, 'PHP', '2026-05-27', 'Team travel expenses', 'approved', 'EXP-0117', 'other', v_user_acct, v_user_admin, '2026-05-28T10:00:00Z');
 
 END $$;
+*/
 
 
 -- ============================================================================
