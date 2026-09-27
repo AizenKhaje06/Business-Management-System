@@ -75,8 +75,15 @@ export function CreateProductionOrderModal({
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      product_id: '',
+      client_id: undefined,
+      project_id: undefined,
       quantity: 1,
       priority: 'normal',
+      scheduled_start_date: '',
+      scheduled_end_date: '',
+      assigned_to: undefined,
+      notes: '',
     },
   });
 
@@ -179,14 +186,17 @@ export function CreateProductionOrderModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Client</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                    value={field.value || 'none'}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select client (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {clients.map((client) => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.name}
@@ -206,14 +216,17 @@ export function CreateProductionOrderModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Project</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                    value={field.value || 'none'}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Link to project (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {projects.map((project) => (
                         <SelectItem key={project.id} value={project.id}>
                           {project.name}
@@ -310,14 +323,17 @@ export function CreateProductionOrderModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Assign To</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                    value={field.value || 'none'}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Assign to team member (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value="none">Unassigned</SelectItem>
                       {users.map((user) => (
                         <SelectItem key={user.id} value={user.id}>
                           {user.first_name} {user.last_name}
