@@ -56,6 +56,7 @@ export default async function ProductsPage() {
           products={products}
           categories={categories}
           canCreate={ctx.permissions.includes('inventory.create')}
+          canEdit={ctx.permissions.includes('inventory.edit')}
         />
       </div>
     </AppShell>

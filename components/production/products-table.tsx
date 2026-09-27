@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { Plus, Package, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,17 +20,20 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { CreateProductModal } from './create-product-modal';
+import { ProductDetailModal } from './product-detail-modal';
 import type { ProductCatalog, ProductCategory } from '@/types/production';
 
 interface ProductsTableProps {
   products: ProductCatalog[];
   categories: ProductCategory[];
   canCreate: boolean;
+  canEdit: boolean;
 }
 
-export function ProductsTable({ products, categories, canCreate }: ProductsTableProps) {
+export function ProductsTable({ products, categories, canCreate, canEdit }: ProductsTableProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   const filteredProducts =
     selectedCategory === 'all'
@@ -167,10 +169,12 @@ export function ProductsTable({ products, categories, canCreate }: ProductsTable
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/products/${product.id}`}>
-                        <Eye className="h-4 w-4" />
-                      </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedProductId(product.id)}
+                    >
+                      <Eye className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -190,6 +194,15 @@ export function ProductsTable({ products, categories, canCreate }: ProductsTable
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         categories={categories}
+      />
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        productId={selectedProductId}
+        open={selectedProductId !== null}
+        onOpenChange={(open) => !open && setSelectedProductId(null)}
+        categories={categories}
+        canEdit={canEdit}
       />
     </div>
   );

@@ -303,6 +303,7 @@ export type CreateProductCatalogInput = {
   base_price?: number;
   estimated_production_hours?: number;
   is_customizable?: boolean;
+  is_active?: boolean;
   image_url?: string;
   notes?: string;
 };
