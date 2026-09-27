@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import type { ProductCatalog, ProductCategory } from '@/types/production';
 
 interface ProductsTableProps {
@@ -46,6 +47,12 @@ export function ProductsTable({ products, categories, canCreate }: ProductsTable
       style: 'currency',
       currency: 'PHP',
     }).format(price);
+  };
+
+  const handleAddProduct = () => {
+    toast.info('Product creation feature coming soon!', {
+      description: 'This feature is under development. You can currently view existing products.',
+    });
   };
 
   return (
@@ -94,7 +101,7 @@ export function ProductsTable({ products, categories, canCreate }: ProductsTable
         </div>
 
         {canCreate && (
-          <Button>
+          <Button onClick={handleAddProduct}>
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
