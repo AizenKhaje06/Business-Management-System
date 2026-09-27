@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+import { CreateProductModal } from './create-product-modal';
 import type { ProductCatalog, ProductCategory } from '@/types/production';
 
 interface ProductsTableProps {
@@ -31,6 +31,7 @@ interface ProductsTableProps {
 
 export function ProductsTable({ products, categories, canCreate }: ProductsTableProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const filteredProducts =
     selectedCategory === 'all'
@@ -47,12 +48,6 @@ export function ProductsTable({ products, categories, canCreate }: ProductsTable
       style: 'currency',
       currency: 'PHP',
     }).format(price);
-  };
-
-  const handleAddProduct = () => {
-    toast.info('Product creation feature coming soon!', {
-      description: 'This feature is under development. You can currently view existing products.',
-    });
   };
 
   return (
@@ -101,7 +96,7 @@ export function ProductsTable({ products, categories, canCreate }: ProductsTable
         </div>
 
         {canCreate && (
-          <Button onClick={handleAddProduct}>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
@@ -189,6 +184,13 @@ export function ProductsTable({ products, categories, canCreate }: ProductsTable
       <div className="text-sm text-muted-foreground">
         Showing {filteredProducts.length} of {products.length} products
       </div>
+
+      {/* Create Product Modal */}
+      <CreateProductModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        categories={categories}
+      />
     </div>
   );
 }
