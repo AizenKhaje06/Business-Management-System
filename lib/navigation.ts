@@ -69,6 +69,13 @@ export const navSections: NavSection[] = [
         enabled: true,
       },
       {
+        label: 'Production',
+        href: '/production',
+        icon: Package,
+        description: 'Manufacturing orders and workflow tracking',
+        enabled: true,
+      },
+      {
         label: 'Payments',
         href: '/payments',
         icon: Receipt,
@@ -99,8 +106,15 @@ export const navSections: NavSection[] = [
       {
         label: 'Materials',
         href: '/materials',
-        icon: Package,
+        icon: ShoppingCart,
         description: 'Manage materials and record purchases',
+        enabled: true,
+      },
+      {
+        label: 'Products',
+        href: '/products',
+        icon: Package,
+        description: 'Product catalog and specifications',
         enabled: true,
       },
     ],
