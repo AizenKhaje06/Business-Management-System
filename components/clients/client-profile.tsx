@@ -38,6 +38,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { archiveClient, deleteClient } from '@/app/actions/clients';
+import { EditClientModal } from './edit-client-modal';
 
 function ProgressBar({ value }: { value: number }) {
   const pct = Math.min(100, Math.max(0, value));
@@ -130,6 +131,7 @@ export function ClientProfile({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   function handleArchive() {
     setError(null);
@@ -191,7 +193,7 @@ export function ClientProfile({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push(`/clients/${client.id}/edit`)}
+                  onClick={() => setIsEditModalOpen(true)}
                   disabled={isPending}
                 >
                   <Pencil className="mr-2 h-4 w-4" />
@@ -583,6 +585,12 @@ export function ClientProfile({
           </Tabs>
         </div>
       </div>
+
+      <EditClientModal 
+        open={isEditModalOpen} 
+        onOpenChange={setIsEditModalOpen} 
+        client={client} 
+      />
     </div>
   );
 }

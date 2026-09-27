@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/table';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PaginationNav } from '@/components/ui/pagination-nav';
+import { CreateExpenseModal } from './create-expense-modal';
 
 interface FilterOptions {
   categories: Array<{ id: string; name: string }>;
@@ -143,6 +144,7 @@ export function ExpensesTable({
   const searchParams = useSearchParams();
   const [searchInput, setSearchInput] = useState(search);
   const [isPending, startTransition] = useTransition();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -207,7 +209,7 @@ export function ExpensesTable({
           </Button>
         </form>
         {canCreate && (
-          <Button size="sm" onClick={() => router.push('/expenses/new')}>
+          <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             New Expense
           </Button>
@@ -391,7 +393,7 @@ export function ExpensesTable({
           }
           action={
             canCreate ? (
-              <Button size="sm" onClick={() => router.push('/expenses/new')}>
+              <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 New Expense
               </Button>
@@ -483,6 +485,14 @@ export function ExpensesTable({
           <span className="text-sm">Loading...</span>
         </div>
       )}
+
+      <CreateExpenseModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        categories={filterOptions.categories}
+        suppliers={filterOptions.suppliers}
+        projects={filterOptions.projects}
+      />
     </div>
   );
 }
