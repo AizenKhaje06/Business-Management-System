@@ -4,7 +4,7 @@ import { getCurrentUserContext } from '@/lib/auth/authorization';
 import { AppShell } from '@/components/layout/app-shell';
 import { PageHeader } from '@/components/ui/page-header';
 import { ErrorState } from '@/components/ui/error-state';
-import { ProductsTable } from '@/components/production/products-table';
+import { ProductsGrid } from '@/components/production/products-grid';
 import { getProducts, getProductCategories } from '@/app/actions/production';
 
 export default async function ProductsPage() {
@@ -52,7 +52,7 @@ export default async function ProductsPage() {
           title="Product Catalog"
           description="Manage wood furniture products, specifications, and pricing."
         />
-        <ProductsTable
+        <ProductsGrid
           products={products}
           categories={categories}
           canCreate={ctx.permissions.includes('inventory.create')}

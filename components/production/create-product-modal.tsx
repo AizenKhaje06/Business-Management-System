@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,9 +32,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { createProduct } from '@/app/actions/production';
+import { createProduct, updateProduct } from '@/app/actions/production';
 import { toast } from 'sonner';
+import { Upload, Camera, X, Image as ImageIcon } from 'lucide-react';
 import type { ProductCategory } from '@/types/production';
+import { uploadProductImageFromBase64 } from '@/lib/supabase/storage-client';
 
 const formSchema = z.object({
   category_id: z.string().min(1, 'Category is required'),
@@ -70,6 +72,10 @@ export function CreateProductModal({
 }: CreateProductModalProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -90,6 +96,30 @@ export function CreateProductModal({
       finish: '',
     },
   });
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Image size must be less than 5MB');
+        return;
+      }
+      
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+  };
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
@@ -118,6 +148,7 @@ export function CreateProductModal({
         : specs.join(' | ');
     }
 
+    // First create the product
     const result = await createProduct({
       category_id: data.category_id,
       name: data.name,
@@ -129,16 +160,54 @@ export function CreateProductModal({
       notes: data.notes || undefined,
     });
 
-    setIsLoading(false);
-
-    if (result.success && result.data) {
-      toast.success('Product created successfully');
-      form.reset();
-      onOpenChange(false);
-      router.refresh();
-    } else {
+    if (!result.success || !result.data) {
+      setIsLoading(false);
       toast.error(result.error || 'Failed to create product');
+      return;
     }
+
+    // Upload image if provided
+    let imageUrl: string | null = null;
+    if (imagePreview && result.data.id) {
+      toast.loading('Compressing and uploading image...', { id: 'image-upload' });
+      
+      const uploadResult = await uploadProductImageFromBase64(
+        imagePreview,
+        result.data.id,
+        true // Enable compression
+      );
+
+      if (uploadResult.url) {
+        imageUrl = uploadResult.url;
+        
+        // Update product with image URL
+        await updateProduct({
+          id: result.data.id,
+          image_url: imageUrl,
+        });
+        
+        // Show compression info
+        if (uploadResult.compressionRate && uploadResult.compressionRate > 0) {
+          toast.success(
+            `Image uploaded (${uploadResult.compressionRate}% smaller)`,
+            { id: 'image-upload' }
+          );
+        } else {
+          toast.success('Image uploaded successfully', { id: 'image-upload' });
+        }
+      } else {
+        toast.error(uploadResult.error || 'Failed to upload image', {
+          id: 'image-upload',
+        });
+      }
+    }
+
+    setIsLoading(false);
+    toast.success('Product created successfully');
+    form.reset();
+    removeImage();
+    onOpenChange(false);
+    router.refresh();
   };
 
   return (
@@ -178,6 +247,72 @@ export function CreateProductModal({
                 </FormItem>
               )}
             />
+
+            {/* Product Image Upload */}
+            <div className="space-y-2">
+              <FormLabel>Product Image</FormLabel>
+              {imagePreview ? (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Product preview"
+                    className="h-48 w-full rounded-lg object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute right-2 top-2"
+                    onClick={removeImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-32 w-full"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-sm">Upload Image</span>
+                    </div>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-32 w-full"
+                    onClick={() => cameraInputRef.current?.click()}
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <Camera className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-sm">Take Photo</span>
+                    </div>
+                  </Button>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              <p className="text-xs text-muted-foreground">
+                Max file size: 5MB. Supported formats: JPG, PNG, WebP
+              </p>
+            </div>
 
             {/* Product Name */}
             <FormField

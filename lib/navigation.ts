@@ -207,6 +207,13 @@ export const navSections: NavSection[] = [
         description: 'Update your personal information',
         enabled: true,
       },
+      {
+        label: 'Product Settings',
+        href: '/settings/products',
+        icon: Package,
+        description: 'Manage wood types, finishes, and categories',
+        enabled: true,
+      },
     ],
   },
 ];

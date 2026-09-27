@@ -486,6 +486,198 @@ export async function completeProductionStage(
 }
 
 // ============================================================================
+// PRODUCT SPECIFICATIONS
+// ============================================================================
+
+export async function addProductSpecification(input: {
+  product_id: string;
+  spec_key: string;
+  spec_value: string;
+  spec_unit?: string;
+  is_default?: boolean;
+  display_order?: number;
+}): Promise<{ success: boolean; error?: string }> {
+  const ctx = await getCurrentUserContext();
+
+  if (!ctx || !ctx.permissions.includes('inventory.edit')) {
+    return { success: false, error: 'Permission denied' };
+  }
+
+  const supabase = createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('product_specifications')
+    .insert(input);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/products');
+  revalidatePath(`/products/${input.product_id}`);
+  return { success: true };
+}
+
+export async function updateProductSpecification(input: {
+  id: string;
+  spec_key?: string;
+  spec_value?: string;
+  spec_unit?: string;
+  is_default?: boolean;
+  display_order?: number;
+}): Promise<{ success: boolean; error?: string }> {
+  const ctx = await getCurrentUserContext();
+
+  if (!ctx || !ctx.permissions.includes('inventory.edit')) {
+    return { success: false, error: 'Permission denied' };
+  }
+
+  const supabase = createSupabaseServerClient();
+
+  const { id, ...updateData } = input;
+
+  const { error } = await supabase
+    .from('product_specifications')
+    .update(updateData)
+    .eq('id', id);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/products');
+  return { success: true };
+}
+
+export async function deleteProductSpecification(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  const ctx = await getCurrentUserContext();
+
+  if (!ctx || !ctx.permissions.includes('inventory.edit')) {
+    return { success: false, error: 'Permission denied' };
+  }
+
+  const supabase = createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('product_specifications')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/products');
+  return { success: true };
+}
+
+// ============================================================================
+// PRODUCT MATERIALS (BOM)
+// ============================================================================
+
+export async function getMaterials(): Promise<any[]> {
+  const supabase = createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('materials')
+    .select('*')
+    .eq('is_active', true)
+    .order('name');
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function addProductMaterial(input: {
+  product_id: string;
+  material_id: string;
+  quantity_required: number;
+  unit: string;
+  waste_factor?: number;
+  notes?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const ctx = await getCurrentUserContext();
+
+  if (!ctx || !ctx.permissions.includes('inventory.edit')) {
+    return { success: false, error: 'Permission denied' };
+  }
+
+  const supabase = createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('product_materials')
+    .insert({
+      ...input,
+      waste_factor: input.waste_factor || 0,
+    });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/products');
+  revalidatePath(`/products/${input.product_id}`);
+  return { success: true };
+}
+
+export async function updateProductMaterial(input: {
+  id: string;
+  material_id?: string;
+  quantity_required?: number;
+  unit?: string;
+  waste_factor?: number;
+  notes?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const ctx = await getCurrentUserContext();
+
+  if (!ctx || !ctx.permissions.includes('inventory.edit')) {
+    return { success: false, error: 'Permission denied' };
+  }
+
+  const supabase = createSupabaseServerClient();
+
+  const { id, ...updateData } = input;
+
+  const { error } = await supabase
+    .from('product_materials')
+    .update(updateData)
+    .eq('id', id);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/products');
+  return { success: true };
+}
+
+export async function deleteProductMaterial(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  const ctx = await getCurrentUserContext();
+
+  if (!ctx || !ctx.permissions.includes('inventory.edit')) {
+    return { success: false, error: 'Permission denied' };
+  }
+
+  const supabase = createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('product_materials')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/products');
+  return { success: true };
+}
+
+// ============================================================================
 // STATISTICS
 // ============================================================================
 
