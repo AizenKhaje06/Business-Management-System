@@ -40,7 +40,16 @@ import { toast } from 'sonner';
 import type { ProductCatalog } from '@/types/production';
 import type { Client } from '@/types/client';
 import type { Project } from '@/types/project';
-import type { Profile } from '@/types/user';
+
+type User = {
+  id: string;
+  email: string;
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  is_active: boolean;
+  role_name: string;
+};
 
 const formSchema = z.object({
   product_id: z.string().min(1, 'Product is required'),
@@ -70,7 +79,7 @@ export function CreateProductionOrderModal({
   const [products, setProducts] = useState<ProductCatalog[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [users, setUsers] = useState<Profile[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -97,7 +106,7 @@ export function CreateProductionOrderModal({
     try {
       const [productsData, clientsData, projectsData, usersData] = await Promise.all([
         getProducts({ is_active: true }),
-        getClients({ isActive: true }),
+        getClients({ status: 'active' }),
         getProjects({ status: 'all' }),
         getUsers(),
       ]);

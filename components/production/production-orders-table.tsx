@@ -22,7 +22,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Pagination } from '@/components/ui/pagination';
+import { Pagination as PaginationComponent } from '@/components/ui/pagination';
+import { PaginationNav } from '@/components/ui/pagination-nav';
 import { CreateProductionOrderModal } from './create-production-order-modal';
 import { deleteProductionOrder } from '@/app/actions/production';
 import { toast } from 'sonner';
@@ -319,10 +320,15 @@ export function ProductionOrdersTable({
       </div>
 
       {/* Pagination */}
-      <Pagination
+      <PaginationNav
         currentPage={page}
         totalPages={Math.ceil(total / pageSize)}
-        onPageChange={(newPage) => updateSearchParams({ page: newPage.toString() })}
+        basePath="/production"
+        queryParams={{
+          search: search || undefined,
+          status: status !== 'all' ? status : undefined,
+          priority: priority !== 'all' ? priority : undefined,
+        }}
       />
 
       {/* Create Modal */}

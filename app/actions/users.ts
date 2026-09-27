@@ -263,3 +263,48 @@ export async function updateOwnProfile(input: {
   revalidatePath('/');
   return { success: true };
 }
+
+/**
+ * Get all users (for dropdowns and listings).
+ * Requires users.view permission.
+ */
+export async function getUsers(): Promise<{
+  users: Array<{
+    id: string;
+    email: string;
+    username: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    is_active: boolean;
+    role_name: string;
+  }>;
+}> {
+  const ctx = await getCurrentUserContext();
+  if (!ctx || !ctx.permissions.includes('users.view')) {
+    return { users: [] };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase
+    .from('profiles')
+    .select('id, email, username, first_name, last_name, is_active, role:roles(name)')
+    .eq('is_active', true)
+    .order('first_name', { ascending: true });
+
+  if (!data) return { users: [] };
+
+  return {
+    users: data.map((p) => {
+      const role = Array.isArray(p.role) ? p.role[0] : p.role;
+      return {
+        id: p.id,
+        email: p.email,
+        username: p.username,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        is_active: p.is_active,
+        role_name: (role as { name: string } | null)?.name || 'VIEWER',
+      };
+    }),
+  };
+}

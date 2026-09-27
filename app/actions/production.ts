@@ -311,7 +311,7 @@ export async function createProductionOrder(
     .insert({
       order_number: orderNumberData,
       ...input,
-      created_by: ctx.user.id,
+      created_by: ctx.id,
     })
     .select()
     .single();
