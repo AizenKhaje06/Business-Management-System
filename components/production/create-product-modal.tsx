@@ -45,6 +45,14 @@ const formSchema = z.object({
   estimated_production_hours: z.coerce.number().min(0).optional(),
   is_customizable: z.boolean().default(false),
   notes: z.string().optional(),
+  // Dimensions
+  width: z.string().optional(),
+  height: z.string().optional(),
+  thickness: z.string().optional(),
+  dimension_unit: z.string().default('inches'),
+  // Wood specifications
+  wood_type: z.string().optional(),
+  finish: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -74,17 +82,47 @@ export function CreateProductModal({
       estimated_production_hours: undefined,
       is_customizable: false,
       notes: '',
+      width: '',
+      height: '',
+      thickness: '',
+      dimension_unit: 'inches',
+      wood_type: '',
+      finish: '',
     },
   });
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
 
+    // Build enhanced description with specs
+    let enhancedDescription = data.description || '';
+    
+    const specs = [];
+    if (data.width || data.height || data.thickness) {
+      const dims = [];
+      if (data.width) dims.push(`W: ${data.width}`);
+      if (data.height) dims.push(`H: ${data.height}`);
+      if (data.thickness) dims.push(`T: ${data.thickness}`);
+      specs.push(`Dimensions: ${dims.join(' x ')} ${data.dimension_unit}`);
+    }
+    if (data.wood_type && data.wood_type !== 'none') {
+      specs.push(`Wood: ${data.wood_type}`);
+    }
+    if (data.finish && data.finish !== 'none') {
+      specs.push(`Finish: ${data.finish}`);
+    }
+    
+    if (specs.length > 0) {
+      enhancedDescription = enhancedDescription 
+        ? `${enhancedDescription}\n\n${specs.join(' | ')}`
+        : specs.join(' | ');
+    }
+
     const result = await createProduct({
       category_id: data.category_id,
       name: data.name,
       sku: data.sku || undefined,
-      description: data.description || undefined,
+      description: enhancedDescription || undefined,
       base_price: data.base_price || undefined,
       estimated_production_hours: data.estimated_production_hours || undefined,
       is_customizable: data.is_customizable,
@@ -192,6 +230,154 @@ export function CreateProductModal({
                 </FormItem>
               )}
             />
+
+            {/* Dimensions Section */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <h3 className="font-medium">Dimensions (Standard Size)</h3>
+              
+              <div className="grid gap-4 sm:grid-cols-4">
+                {/* Width */}
+                <FormField
+                  control={form.control}
+                  name="width"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Width</FormLabel>
+                      <FormControl>
+                        <Input placeholder="36" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Height */}
+                <FormField
+                  control={form.control}
+                  name="height"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Height</FormLabel>
+                      <FormControl>
+                        <Input placeholder="80" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Thickness */}
+                <FormField
+                  control={form.control}
+                  name="thickness"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Thickness</FormLabel>
+                      <FormControl>
+                        <Input placeholder="1.75" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Unit */}
+                <FormField
+                  control={form.control}
+                  name="dimension_unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="inches">Inches</SelectItem>
+                          <SelectItem value="cm">Centimeters</SelectItem>
+                          <SelectItem value="mm">Millimeters</SelectItem>
+                          <SelectItem value="feet">Feet</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Wood Specifications Section */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <h3 className="font-medium">Wood Specifications</h3>
+              
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* Wood Type */}
+                <FormField
+                  control={form.control}
+                  name="wood_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Wood Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select wood type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Not specified</SelectItem>
+                          <SelectItem value="Mahogany">Mahogany</SelectItem>
+                          <SelectItem value="Narra">Narra</SelectItem>
+                          <SelectItem value="Oak">Oak</SelectItem>
+                          <SelectItem value="Molave">Molave</SelectItem>
+                          <SelectItem value="Kamagong">Kamagong (Ironwood)</SelectItem>
+                          <SelectItem value="Acacia">Acacia</SelectItem>
+                          <SelectItem value="Dao">Dao</SelectItem>
+                          <SelectItem value="Yakal">Yakal</SelectItem>
+                          <SelectItem value="Pine">Pine</SelectItem>
+                          <SelectItem value="Teak">Teak</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>Default wood for this product</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Finish */}
+                <FormField
+                  control={form.control}
+                  name="finish"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Finish</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select finish" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Not specified</SelectItem>
+                          <SelectItem value="Natural Stain">Natural Stain</SelectItem>
+                          <SelectItem value="Dark Stain">Dark Stain</SelectItem>
+                          <SelectItem value="Light Stain">Light Stain</SelectItem>
+                          <SelectItem value="Varnish">Varnish</SelectItem>
+                          <SelectItem value="Lacquer">Lacquer</SelectItem>
+                          <SelectItem value="Oil Finish">Oil Finish</SelectItem>
+                          <SelectItem value="Painted">Painted</SelectItem>
+                          <SelectItem value="Unfinished">Unfinished</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>Standard finish option</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Base Price */}
