@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PaginationNav } from '@/components/ui/pagination-nav';
+import { CreateClientModal } from './create-client-modal';
 
 interface ClientsTableProps {
   clients: Client[];
@@ -65,6 +66,7 @@ export function ClientsTable({
   const searchParams = useSearchParams();
   const [searchInput, setSearchInput] = useState(search);
   const [isPending, startTransition] = useTransition();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -133,7 +135,7 @@ export function ClientsTable({
           </Select>
 
           {canCreate && (
-            <Button size="sm" onClick={() => router.push('/clients/new')}>
+            <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               New Client
             </Button>
@@ -174,7 +176,7 @@ export function ClientsTable({
           }
           action={
             canCreate ? (
-              <Button size="sm" onClick={() => router.push('/clients/new')}>
+              <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 New Client
               </Button>
@@ -282,6 +284,12 @@ export function ClientsTable({
           <span className="text-sm">Loading...</span>
         </div>
       )}
+
+      {/* Create Client Modal */}
+      <CreateClientModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+      />
     </div>
   );
 }
