@@ -114,7 +114,7 @@ export async function createProduct(
     .from('product_catalog')
     .insert({
       ...input,
-      created_by: ctx.user.id,
+      created_by: ctx.id,
     })
     .select()
     .single();
