@@ -17,6 +17,7 @@ export type ActionResult =
 export async function createUser(input: {
   email: string;
   password: string;
+  username?: string;
   firstName?: string;
   lastName?: string;
   roleName: RoleName;
@@ -31,6 +32,19 @@ export async function createUser(input: {
   }
 
   const admin = createSupabaseAdminClient();
+
+  // Validate username if provided
+  if (input.username) {
+    const { data: existingUsername } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('username', input.username)
+      .maybeSingle();
+
+    if (existingUsername) {
+      return { success: false, error: 'Username already taken.' };
+    }
+  }
 
   const { data: authData, error: authError } =
     await admin.auth.admin.createUser({
@@ -56,10 +70,29 @@ export async function createUser(input: {
     return { success: false, error: `Role "${input.roleName}" not found.` };
   }
 
+  // Generate username if not provided
+  let finalUsername = input.username;
+  if (!finalUsername) {
+    finalUsername = input.email.split('@')[0].toLowerCase();
+    // Make unique if needed
+    let counter = 1;
+    while (true) {
+      const { data: existing } = await admin
+        .from('profiles')
+        .select('id')
+        .eq('username', finalUsername)
+        .maybeSingle();
+      if (!existing) break;
+      finalUsername = `${input.email.split('@')[0].toLowerCase()}_${counter}`;
+      counter++;
+    }
+  }
+
   // Update the auto-created profile
   const { error: profileError } = await admin
     .from('profiles')
     .update({
+      username: finalUsername,
       first_name: input.firstName || null,
       last_name: input.lastName || null,
       role_id: role.id,
@@ -73,7 +106,7 @@ export async function createUser(input: {
   await logAuditForCurrentUser(ctx.id, 'create', 'user', {
     entityId: userId,
     entityName: input.email,
-    newValues: { email: input.email, role: input.roleName },
+    newValues: { email: input.email, username: finalUsername, role: input.roleName },
   });
 
   revalidatePath('/admin/users');

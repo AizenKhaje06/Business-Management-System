@@ -130,6 +130,7 @@ export function UsersTable({
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
+              <TableHead>Username</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
@@ -139,7 +140,7 @@ export function UsersTable({
           <TableBody>
             {profiles.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-0">
+                <TableCell colSpan={6} className="py-0">
                   <EmptyState
                     icon={Users}
                     title="No users found"
@@ -155,12 +156,19 @@ export function UsersTable({
                     <span className="font-medium">
                       {profile.first_name || profile.last_name
                         ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
-                        : profile.email}
+                        : (profile as any).username || profile.email}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      {profile.email}
-                    </span>
+                    {profile.first_name && profile.last_name && (
+                      <span className="text-xs text-muted-foreground">
+                        @{(profile as any).username || profile.email.split('@')[0]}
+                      </span>
+                    )}
                   </div>
+                </TableCell>
+                <TableCell>
+                  <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
+                    {(profile as any).username || '-'}
+                  </code>
                 </TableCell>
                 <TableCell>
                   {profile.role ? (
@@ -314,16 +322,18 @@ function CreateUserDialog({
   onSubmit: (data: {
     email: string;
     password: string;
+    username?: string;
     firstName?: string;
     lastName?: string;
     roleName: RoleName;
   }) => void;
 }) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [roleName, setRoleName] = useState<RoleName>('VIEWER');
+  const [showPassword, setShowPassword] = useState(false);
 
   const availableRoles = roles.filter((r) => r.level > currentRoleLevel);
 
@@ -337,26 +347,51 @@ function CreateUserDialog({
       </DialogHeader>
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="create-email">Email</Label>
+          <Label htmlFor="create-username">Username</Label>
           <Input
-            id="create-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="user@company.com"
+            id="create-username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+            placeholder="username (for login)"
             disabled={isPending}
+            autoFocus
           />
+          <p className="text-xs text-muted-foreground">
+            Alphanumeric and underscore only. Used for login.
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="create-password">Password</Label>
-          <Input
-            id="create-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 6 characters"
-            disabled={isPending}
-          />
+          <div className="relative">
+            <Input
+              id="create-password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 6 characters"
+              disabled={isPending}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+              tabIndex={-1}
+            >
+              {showPassword ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -401,9 +436,16 @@ function CreateUserDialog({
       <DialogFooter>
         <Button
           type="button"
-          disabled={isPending || !email || !password}
+          disabled={isPending || !username || !password}
           onClick={() =>
-            onSubmit({ email, password, firstName, lastName, roleName })
+            onSubmit({ 
+              email: `${username}@internal.local`,  // Auto-generate email from username
+              password, 
+              username, 
+              firstName, 
+              lastName, 
+              roleName 
+            })
           }
         >
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -455,7 +497,7 @@ function EditUserDialog({
       <DialogHeader>
         <DialogTitle>Edit User</DialogTitle>
         <DialogDescription>
-          Update {profile.email}&apos;s profile and role.
+          Update {(profile as any).username || profile.email}&apos;s profile and role.
         </DialogDescription>
       </DialogHeader>
       <div className="space-y-4">

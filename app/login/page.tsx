@@ -15,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -29,26 +29,43 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const supabase = createSupabaseBrowserClient();
+      
+      // Get email from username
+      const { data: emailData, error: lookupError } = await supabase
+        .rpc('get_email_by_username', { p_username: username });
 
-    setLoading(false);
+      if (lookupError || !emailData) {
+        setError('Invalid username or password. Please try again.');
+        setLoading(false);
+        return;
+      }
 
-    if (error) {
-      setError(
-        error.message === 'Invalid login credentials'
-          ? 'Invalid email or password. Please try again.'
-          : error.message
-      );
-      return;
+      // Login with email
+      const { error } = await supabase.auth.signInWithPassword({
+        email: emailData,
+        password,
+      });
+
+      setLoading(false);
+
+      if (error) {
+        setError(
+          error.message === 'Invalid login credentials'
+            ? 'Invalid username or password. Please try again.'
+            : error.message
+        );
+        return;
+      }
+
+      await logLogin(emailData);
+      router.push(redirectPath);
+      router.refresh();
+    } catch (err) {
+      setLoading(false);
+      setError('An error occurred. Please try again.');
     }
-
-    await logLogin(email);
-    router.push(redirectPath);
-    router.refresh();
   }
 
   return (
@@ -77,15 +94,15 @@ export default function LoginPage() {
         {/* Login form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
-              autoComplete="email"
+              autoComplete="username"
               autoFocus
               disabled={loading}
             />
