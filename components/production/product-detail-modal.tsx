@@ -49,6 +49,14 @@ const formSchema = z.object({
   is_customizable: z.boolean().default(false),
   is_active: z.boolean().default(true),
   notes: z.string().optional(),
+  // Dimensions
+  width: z.string().optional(),
+  height: z.string().optional(),
+  thickness: z.string().optional(),
+  dimension_unit: z.string().default('inches'),
+  // Wood specifications
+  wood_type: z.string().optional(),
+  finish: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -85,6 +93,12 @@ export function ProductDetailModal({
       is_customizable: false,
       is_active: true,
       notes: '',
+      width: '',
+      height: '',
+      thickness: '',
+      dimension_unit: 'inches',
+      wood_type: '',
+      finish: '',
     },
   });
 
@@ -334,6 +348,146 @@ export function ProductDetailModal({
                       </FormItem>
                     )}
                   />
+
+                  {/* Dimensions Section */}
+                  <div className="space-y-4 rounded-lg border p-4">
+                    <h4 className="text-sm font-medium">Dimensions (Standard Size)</h4>
+                    
+                    <div className="grid gap-4 sm:grid-cols-4">
+                      <FormField
+                        control={form.control}
+                        name="width"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Width</FormLabel>
+                            <FormControl>
+                              <Input placeholder="36" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="height"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Height</FormLabel>
+                            <FormControl>
+                              <Input placeholder="80" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="thickness"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Thickness</FormLabel>
+                            <FormControl>
+                              <Input placeholder="1.75" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="dimension_unit"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Unit</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="inches">Inches</SelectItem>
+                                <SelectItem value="cm">Centimeters</SelectItem>
+                                <SelectItem value="mm">Millimeters</SelectItem>
+                                <SelectItem value="feet">Feet</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Wood Specifications Section */}
+                  <div className="space-y-4 rounded-lg border p-4">
+                    <h4 className="text-sm font-medium">Wood Specifications</h4>
+                    
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="wood_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Wood Type</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || 'none'}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">Not specified</SelectItem>
+                                <SelectItem value="Mahogany">Mahogany</SelectItem>
+                                <SelectItem value="Narra">Narra</SelectItem>
+                                <SelectItem value="Oak">Oak</SelectItem>
+                                <SelectItem value="Molave">Molave</SelectItem>
+                                <SelectItem value="Kamagong">Kamagong (Ironwood)</SelectItem>
+                                <SelectItem value="Acacia">Acacia</SelectItem>
+                                <SelectItem value="Dao">Dao</SelectItem>
+                                <SelectItem value="Yakal">Yakal</SelectItem>
+                                <SelectItem value="Pine">Pine</SelectItem>
+                                <SelectItem value="Teak">Teak</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="finish"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Finish</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || 'none'}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">Not specified</SelectItem>
+                                <SelectItem value="Natural Stain">Natural Stain</SelectItem>
+                                <SelectItem value="Dark Stain">Dark Stain</SelectItem>
+                                <SelectItem value="Light Stain">Light Stain</SelectItem>
+                                <SelectItem value="Varnish">Varnish</SelectItem>
+                                <SelectItem value="Lacquer">Lacquer</SelectItem>
+                                <SelectItem value="Oil Finish">Oil Finish</SelectItem>
+                                <SelectItem value="Painted">Painted</SelectItem>
+                                <SelectItem value="Unfinished">Unfinished</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField
